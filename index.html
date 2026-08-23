@@ -31,6 +31,9 @@ const BREVO_CONFIG = {
   formAction: 'https://2086cca6.sibforms.com/serve/MUIFAG2mucLx-jTee1rBQi1y1PtWeFF1pS225SD4Ta3HWxu5D58CRuXGM4A6KoS-fynWz3i97rlgLOT66Cyz6myUnUvX293rSDiXydN9hSTLkZC0Kk5jxuwtd8EXQHvTgWTe0ZdOTK7fiJXmvFc8C4LkODu6uzZlfOXEyRsbHh8FgAFGhpy9mh8gTRWA0d0pWKXCbOUa9vM-LL146g==',
   emailField: 'EMAIL',
   firstNameField: 'PRENOM',
+  // profileField : nom du champ d'attribut Brevo qui stocke le profil du quiz (Racines / Éclaircie / Boussole / Traversée)
+  // À VÉRIFIER : crée l'attribut PROFIL dans Brevo, ajoute-le au formulaire, puis confirme ce nom exact dans le code HTML exporté
+  profileField: 'PROFIL',
   hiddenFields: { locale: 'fr', OPT_IN: '1', email_address_check: '' }
 };
 const WORKBOOK_URL = 'https://absolu-digit.fr/acces-trouver-son-pourquoi/';
@@ -40,14 +43,13 @@ const CONTACT_URL = 'https://absolu-digit.fr/contact/';
 
 function validateEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)}
 
-async function submitToBrevo(email, firstName){
+async function postToBrevo(fields){
   if(BREVO_CONFIG.formAction.indexOf('REMPLACER_PAR_URL_ACTION_BREVO')!==-1){
     console.warn('[Absolu Clarté] Brevo non configuré : voir BREVO_CONFIG en haut du script.');
     return;
   }
   const params = new URLSearchParams();
-  params.append(BREVO_CONFIG.emailField, email);
-  if(firstName) params.append(BREVO_CONFIG.firstNameField, firstName);
+  Object.entries(fields).forEach(([k,v])=>{ if(v) params.append(k,v); });
   Object.entries(BREVO_CONFIG.hiddenFields).forEach(([k,v])=>params.append(k,v));
   console.log('[Absolu Clarté] Envoi vers Brevo :', BREVO_CONFIG.formAction, Object.fromEntries(params));
   try{
@@ -172,7 +174,7 @@ function emailGate(){
     if(elapsed < 1200){
       console.warn('[Absolu Clarté] Soumission anormalement rapide ('+elapsed+'ms), envoi Brevo ignoré par précaution.');
     } else {
-      await submitToBrevo(email, fn);
+      await postToBrevo({ [BREVO_CONFIG.emailField]: email, [BREVO_CONFIG.firstNameField]: fn });
     }
     state.started=true;
     quiz();
@@ -196,6 +198,9 @@ function result(){
   const letter=String.fromCharCode(65+type);
   const workbookLink=`${WORKBOOK_URL}?utm_source=quiz&utm_medium=lead-magnet&utm_campaign=pourquoi&profil=${p.slug}`;
   app.className='shell result';
+  if(state.email){
+    postToBrevo({ [BREVO_CONFIG.emailField]: state.email, [BREVO_CONFIG.profileField]: p.name });
+  }
   const actions = type===3
     ? `<div class="result-actions"><a class="btn" href="${workbookLink}" target="_blank">Continuer avec le workbook →</a><a class="secondary-link" href="${METHOD_URL}" target="_blank">Découvrir la méthode Absolu →</a><a class="secondary-link" href="${CONTACT_URL}" target="_blank">Je contacte Amélie →</a></div>`
     : `<div class="result-actions"><a class="btn" href="${workbookLink}" target="_blank">Continuer avec le workbook →</a></div>`;
