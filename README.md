@@ -39,10 +39,10 @@ Tant que `formAction` contient encore `REMPLACER_PAR_URL_ACTION_BREVO`, le quiz 
 ## 2. Personnaliser
 
 Tout se modifie dans `index.html` :
-- `questions` : les 8 questions (texte, sous-texte, 3 réponses `"Titre|Sous-titre"`).
-- Le tableau `data` dans `result()` : les 3 profils de résultat (titre, texte, prochain pas).
-- `WORKBOOK_URL` : le lien vers ton offre payante.
-- `PRIVACY_URL` : le lien vers ta politique de confidentialité.
+- `questions` : les 8 questions (texte, sous-texte, 4 réponses `"Titre|Sous-titre"` — la 4e est toujours l'option « pas sûr(e) »).
+- `PROFILES` : les 4 profils de résultat (nom, titre, texte, exercice de la semaine). Le profil D (« Traversée ») est le seul à afficher les liens vers la méthode et le contact en plus du workbook.
+- `WORKBOOK_URL`, `PRIVACY_URL`, `METHOD_URL`, `CONTACT_URL` : les 4 liens vers ton site.
+- `asidePhrases` : les 8 phrases de réassurance affichées à gauche pendant le quiz (une par question, desktop uniquement).
 
 ## 3. Tester en local
 
