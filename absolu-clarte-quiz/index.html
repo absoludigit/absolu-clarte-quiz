@@ -43,17 +43,24 @@ function validateEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)}
 
 async function submitToBrevo(email, firstName){
   if(BREVO_CONFIG.formAction.indexOf('REMPLACER_PAR_URL_ACTION_BREVO')!==-1){
-    console.warn('Brevo non configuré : voir BREVO_CONFIG en haut du script.');
+    console.warn('[Absolu Clarté] Brevo non configuré : voir BREVO_CONFIG en haut du script.');
     return;
   }
-  const fd = new FormData();
-  fd.append(BREVO_CONFIG.emailField, email);
-  if(firstName) fd.append(BREVO_CONFIG.firstNameField, firstName);
-  Object.entries(BREVO_CONFIG.hiddenFields).forEach(([k,v])=>fd.append(k,v));
+  const params = new URLSearchParams();
+  params.append(BREVO_CONFIG.emailField, email);
+  if(firstName) params.append(BREVO_CONFIG.firstNameField, firstName);
+  Object.entries(BREVO_CONFIG.hiddenFields).forEach(([k,v])=>params.append(k,v));
+  console.log('[Absolu Clarté] Envoi vers Brevo :', BREVO_CONFIG.formAction, Object.fromEntries(params));
   try{
-    await fetch(BREVO_CONFIG.formAction, {method:'POST', mode:'no-cors', body: fd});
+    await fetch(BREVO_CONFIG.formAction, {
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body: params.toString()
+    });
+    console.log('[Absolu Clarté] Requête envoyée à Brevo (réponse non lisible en no-cors, c\'est normal).');
   }catch(e){
-    console.warn('Envoi Brevo impossible (le quiz continue quand même).', e);
+    console.warn('[Absolu Clarté] Envoi Brevo impossible (le quiz continue quand même).', e);
   }
 }
 
@@ -80,14 +87,14 @@ function landing(){
 
 function emailGate(){
   app.className='shell quiz';
-  content.innerHTML=header()+`<div class="progress"><i style="width:4%"></i></div><section class="layout"><aside class="aside"><div class="circle">✉</div><div><h2>Votre résultat, par email</h2><p>Votre profil et un premier pas concret arrivent directement dans votre boîte mail.</p></div><small>Avant de commencer</small></aside><div class="question"><p class="eyebrow">Une dernière chose</p><h1>Où faut-il vous envoyer votre clarté ?</h1><p class="hint">Aucun spam. Vous pouvez vous désinscrire en un clic à tout moment.</p><form id="gate-form" novalidate><div class="field"><label for="fn">Prénom</label><input id="fn" name="fn" type="text" autocomplete="given-name" placeholder="Votre prénom"></div><div class="field"><label for="em">Email</label><input id="em" name="em" type="email" autocomplete="email" required placeholder="vous@exemple.com"></div><input class="hp" type="text" name="website" id="website" tabindex="-1" autocomplete="off"><label class="consent"><input type="checkbox" id="consent" required><span>J’accepte de recevoir mon résultat et des messages d’Absolu Clarté par email. Désinscription possible à tout moment. <a href="${PRIVACY_URL}" target="_blank" rel="noopener">Politique de confidentialité</a>.</span></label><p class="errormsg" id="gate-error"></p><div class="actions"><button type="button" class="back" id="gate-back">← Retour</button><button class="btn" type="submit" id="gate-submit">Voir ce qui se dessine →</button></div></form></div></section>`;
+  content.innerHTML=header()+`<div class="progress"><i style="width:4%"></i></div><section class="layout"><aside class="aside"><div class="circle">✉</div><div><h2>Votre résultat, par email</h2><p>Votre profil et un premier pas concret arrivent directement dans votre boîte mail.</p></div><small>Avant de commencer</small></aside><div class="question"><p class="eyebrow">Une dernière chose</p><h1>Où faut-il vous envoyer votre clarté ?</h1><p class="hint">Aucun spam. Vous pouvez vous désinscrire en un clic à tout moment.</p><form id="gate-form" novalidate><div class="field"><label for="fn">Prénom</label><input id="fn" name="fn" type="text" autocomplete="given-name" placeholder="Votre prénom"></div><div class="field"><label for="em">Email</label><input id="em" name="em" type="email" autocomplete="email" required placeholder="vous@exemple.com"></div><input class="hp" type="text" name="hp_check_x7q" id="hp_check_x7q" tabindex="-1" autocomplete="off" aria-hidden="true"><label class="consent"><input type="checkbox" id="consent" required><span>J’accepte de recevoir mon résultat et des messages d’Absolu Clarté par email. Désinscription possible à tout moment. <a href="${PRIVACY_URL}" target="_blank" rel="noopener">Politique de confidentialité</a>.</span></label><p class="errormsg" id="gate-error"></p><div class="actions"><button type="button" class="back" id="gate-back">← Retour</button><button class="btn" type="submit" id="gate-submit">Voir ce qui se dessine →</button></div></form></div></section>`;
   document.getElementById('gate-back').onclick=()=>landing();
   document.getElementById('gate-form').onsubmit=async (e)=>{
     e.preventDefault();
     const email=document.getElementById('em').value.trim();
     const fn=document.getElementById('fn').value.trim();
     const consent=document.getElementById('consent').checked;
-    const hp=document.getElementById('website').value;
+    const hp=document.getElementById('hp_check_x7q').value;
     const errEl=document.getElementById('gate-error');
     errEl.textContent='';
     if(!validateEmail(email)){errEl.textContent='Merci de vérifier votre adresse email.';return;}
@@ -95,7 +102,11 @@ function emailGate(){
     const btn=document.getElementById('gate-submit');
     btn.disabled=true;btn.textContent='Envoi en cours…';
     state.email=email;state.firstName=fn;
-    if(!hp){ await submitToBrevo(email, fn); }
+    if(hp){
+      console.warn('[Absolu Clarté] Honeypot rempli, envoi Brevo ignoré (probablement un bot).', hp);
+    } else {
+      await submitToBrevo(email, fn);
+    }
     state.started=true;
     quiz();
   };
