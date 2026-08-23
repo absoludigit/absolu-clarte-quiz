@@ -43,23 +43,38 @@ const CONTACT_URL = 'https://absolu-digit.fr/contact/';
 
 function validateEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)}
 
-async function postToBrevo(fields){
+function postToBrevo(fields){
   if(BREVO_CONFIG.formAction.indexOf('REMPLACER_PAR_URL_ACTION_BREVO')!==-1){
     console.warn('[Absolu Clarté] Brevo non configuré : voir BREVO_CONFIG en haut du script.');
     return;
   }
-  const params = new URLSearchParams();
-  Object.entries(fields).forEach(([k,v])=>{ if(v) params.append(k,v); });
-  Object.entries(BREVO_CONFIG.hiddenFields).forEach(([k,v])=>params.append(k,v));
-  console.log('[Absolu Clarté] Envoi vers Brevo :', BREVO_CONFIG.formAction, Object.fromEntries(params));
   try{
-    await fetch(BREVO_CONFIG.formAction, {
-      method:'POST',
-      mode:'no-cors',
-      headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body: params.toString()
+    let iframe = document.getElementById('brevo-target-frame');
+    if(!iframe){
+      iframe = document.createElement('iframe');
+      iframe.name = 'brevo-target-frame';
+      iframe.id = 'brevo-target-frame';
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+    }
+    const allFields = Object.assign({}, fields, BREVO_CONFIG.hiddenFields);
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = BREVO_CONFIG.formAction;
+    form.target = 'brevo-target-frame';
+    form.style.display = 'none';
+    Object.entries(allFields).forEach(([k,v])=>{
+      if(v===undefined||v===null||v==='') return;
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = k;
+      input.value = v;
+      form.appendChild(input);
     });
-    console.log('[Absolu Clarté] Requête envoyée à Brevo (réponse non lisible en no-cors, c\'est normal).');
+    document.body.appendChild(form);
+    console.log('[Absolu Clarté] Envoi vers Brevo (formulaire caché) :', BREVO_CONFIG.formAction, allFields);
+    form.submit();
+    setTimeout(()=>form.remove(), 4000);
   }catch(e){
     console.warn('[Absolu Clarté] Envoi Brevo impossible (le quiz continue quand même).', e);
   }
