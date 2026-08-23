@@ -199,7 +199,7 @@ function result(){
   const workbookLink=`${WORKBOOK_URL}?utm_source=quiz&utm_medium=lead-magnet&utm_campaign=pourquoi&profil=${p.slug}`;
   app.className='shell result';
   if(state.email){
-    postToBrevo({ [BREVO_CONFIG.emailField]: state.email, [BREVO_CONFIG.profileField]: p.name });
+    postToBrevo({ [BREVO_CONFIG.emailField]: state.email, [BREVO_CONFIG.firstNameField]: state.firstName, [BREVO_CONFIG.profileField]: p.name });
   }
   const actions = type===3
     ? `<div class="result-actions"><a class="btn" href="${workbookLink}" target="_blank">Continuer avec le workbook →</a><a class="secondary-link" href="${METHOD_URL}" target="_blank">Découvrir la méthode Absolu →</a><a class="secondary-link" href="${CONTACT_URL}" target="_blank">Je contacte Amélie →</a></div>`
