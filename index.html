@@ -43,38 +43,38 @@ const CONTACT_URL = 'https://absolu-digit.fr/contact/';
 
 function validateEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)}
 
-function escapeHtml(s){
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-
 function postToBrevo(fields){
   if(BREVO_CONFIG.formAction.indexOf('REMPLACER_PAR_URL_ACTION_BREVO')!==-1){
     console.warn('[Absolu Clarté] Brevo non configuré : voir BREVO_CONFIG en haut du script.');
     return;
   }
   try{
-    const popup = window.open('about:blank', 'brevoPopup_'+Date.now(), 'width=50,height=50,left=-2000,top=-2000');
-    if(!popup){
-      console.warn('[Absolu Clarté] La fenêtre Brevo a été bloquée par le navigateur, envoi annulé.');
-      return;
+    let iframe = document.getElementById('brevo-target-frame');
+    if(!iframe){
+      iframe = document.createElement('iframe');
+      iframe.name = 'brevo-target-frame';
+      iframe.id = 'brevo-target-frame';
+      iframe.style.cssText = 'position:absolute;width:1px;height:1px;left:-9999px;top:-9999px;border:0;';
+      document.body.appendChild(iframe);
     }
     const allFields = Object.assign({}, fields, BREVO_CONFIG.hiddenFields);
-    let inputs = '';
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = BREVO_CONFIG.formAction;
+    form.target = 'brevo-target-frame';
+    form.style.display = 'none';
     Object.entries(allFields).forEach(([k,v])=>{
       if(v===undefined||v===null||v==='') return;
-      inputs += `<input type="hidden" name="${escapeHtml(k)}" value="${escapeHtml(v)}">`;
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = k;
+      input.value = v;
+      form.appendChild(input);
     });
-    const doc = popup.document;
-    doc.open();
-    doc.write(`<!doctype html><html><body>
-      <form id="sib-form" method="POST" action="${BREVO_CONFIG.formAction}">
-        ${inputs}
-      </form>
-      <script>document.getElementById('sib-form').submit();<\/script>
-    </body></html>`);
-    doc.close();
-    console.log('[Absolu Clarté] Envoi vers Brevo (fenêtre) :', allFields);
-    setTimeout(()=>{ try{ popup.close(); }catch(e){} }, 2500);
+    document.body.appendChild(form);
+    console.log('[Absolu Clarté] Envoi vers Brevo (iframe invisible) :', BREVO_CONFIG.formAction, allFields);
+    form.submit();
+    setTimeout(()=>form.remove(), 4000);
   }catch(e){
     console.warn('[Absolu Clarté] Envoi Brevo impossible (le quiz continue quand même).', e);
   }
