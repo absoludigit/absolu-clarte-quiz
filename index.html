@@ -57,23 +57,100 @@ function ensureBrevoWidget(callback){
   document.body.appendChild(brevoFrame);
   const doc = brevoFrame.contentDocument;
   doc.open();
-  doc.write(`<!doctype html><html><head></head><body>
-    <form id="sib-form" method="POST" action="${BREVO_CONFIG.formAction}" data-type="subscription">
-      <input type="text" id="EMAIL" name="${BREVO_CONFIG.emailField}" autocomplete="off" required />
-      <input type="text" id="PRENOM" name="${BREVO_CONFIG.firstNameField}" autocomplete="off" required />
-      <input type="text" id="PROFIL" name="${BREVO_CONFIG.profileField}" autocomplete="off" />
-      <input type="checkbox" id="OPT_IN" name="OPT_IN" value="1" />
-      <input type="text" name="email_address_check" value="" class="input--hidden">
-      <input type="hidden" name="locale" value="fr">
-      <button id="sib-submit" form="sib-form" type="submit">S'inscrire</button>
-    </form>
+  doc.write(`<!doctype html><html><head>
+    <link rel="stylesheet" href="https://sibforms.com/forms/end-form/build/sib-styles.css">
+  </head><body>
+  <div class="sib-form" style="text-align:center;background-color:#EFF2F7;">
+    <div id="sib-form-container" class="sib-form-container">
+      <div id="error-message" class="sib-form-message-panel" style="display:none;">
+        <div class="sib-form-message-panel__text sib-form-message-panel__text--center">
+          <span class="sib-form-message-panel__inner-text">Erreur</span>
+        </div>
+      </div>
+      <div></div>
+      <div id="success-message" class="sib-form-message-panel" style="display:none;">
+        <div class="sib-form-message-panel__text sib-form-message-panel__text--center">
+          <span class="sib-form-message-panel__inner-text">Inscription confirmée</span>
+        </div>
+      </div>
+      <div></div>
+      <div id="sib-container" class="sib-container--large sib-container--vertical" style="text-align:center;background-color:#fff;direction:ltr">
+        <form id="sib-form" method="POST" action="${BREVO_CONFIG.formAction}" data-type="subscription">
+          <div style="padding:8px 0;">
+            <div class="sib-input sib-form-block">
+              <div class="form__entry entry_block">
+                <div class="form__label-row">
+                  <div class="entry__field">
+                    <input class="input" type="text" id="EMAIL" name="${BREVO_CONFIG.emailField}" autocomplete="off" value="" placeholder="EMAIL" data-required="true" required />
+                  </div>
+                </div>
+                <label class="entry__error entry__error--primary"></label>
+              </div>
+            </div>
+          </div>
+          <div style="padding:8px 0;">
+            <div class="sib-input sib-form-block">
+              <div class="form__entry entry_block">
+                <div class="form__label-row">
+                  <label class="entry__label" for="PRENOM" data-required="*">PRENOM</label>
+                  <div class="entry__field">
+                    <input class="input" maxlength="200" type="text" id="PRENOM" name="${BREVO_CONFIG.firstNameField}" autocomplete="off" placeholder="PRENOM" data-required="true" required />
+                  </div>
+                </div>
+                <label class="entry__error entry__error--primary"></label>
+              </div>
+            </div>
+          </div>
+          <div style="padding:8px 0;">
+            <div class="sib-input sib-form-block">
+              <div class="form__entry entry_block">
+                <div class="form__label-row">
+                  <label class="entry__label" for="PROFIL">PROFIL</label>
+                  <div class="entry__field">
+                    <input class="input" maxlength="200" type="text" id="PROFIL" name="${BREVO_CONFIG.profileField}" autocomplete="off" placeholder="PROFIL" />
+                  </div>
+                </div>
+                <label class="entry__error entry__error--primary"></label>
+              </div>
+            </div>
+          </div>
+          <div style="padding:8px 0;">
+            <div class="sib-optin sib-form-block" data-required="true">
+              <div class="form__entry entry_mcq">
+                <div class="form__label-row">
+                  <div class="entry__choice">
+                    <label>
+                      <input type="checkbox" class="input_replaced" value="1" id="OPT_IN" name="OPT_IN" required />
+                      <span class="checkbox checkbox_tick_positive"></span>
+                      <span><p>OK</p><span data-required="*" style="display:inline;" class="entry__label entry__label_optin"></span></span>
+                    </label>
+                  </div>
+                </div>
+                <label class="entry__error entry__error--primary"></label>
+              </div>
+            </div>
+          </div>
+          <div style="padding:8px 0;">
+            <div class="sib-form-block" style="text-align:left">
+              <button class="sib-form-block__button sib-form-block__button-with-loader" form="sib-form" type="submit" id="sib-submit">S'inscrire</button>
+            </div>
+          </div>
+          <input type="text" name="email_address_check" value="" class="input--hidden">
+          <input type="hidden" name="locale" value="fr">
+        </form>
+      </div>
+    </div>
+  </div>
     <script>
       window.REQUIRED_CODE_ERROR_MESSAGE='Veuillez choisir un code pays';
       window.LOCALE='fr';
       window.EMAIL_INVALID_MESSAGE=window.SMS_INVALID_MESSAGE='Adresse invalide.';
       window.REQUIRED_ERROR_MESSAGE='Champ requis.';
       window.GENERIC_INVALID_MESSAGE='Adresse invalide.';
-      window.translation={common:{}};
+      window.INVALID_NUMBER='Adresse invalide.';
+      window.INVALID_DATE='Date invalide.';
+      window.REQUIRED_MULTISELECT_MESSAGE='Choisissez une option.';
+      window.translation={common:{selectedList:'',selectedLists:'',selectedOption:'',selectedOptions:''}};
       window.AUTOHIDE=false;
     <\/script>
     <script defer src="https://sibforms.com/forms/end-form/build/main.js" onload="parent.postMessage('brevo-widget-ready','*')"><\/script>
