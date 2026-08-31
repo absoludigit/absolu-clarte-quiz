@@ -165,7 +165,7 @@ const content=document.getElementById('content'), app=document.getElementById('a
 function landing(){
   app.className='shell landing';
   content.innerHTML='<section class="landing"><div class="copy"><p class="eyebrow">Un espace de réflexion guidée</p><h1>Et si votre<br><em>Pourquoi</em> était<br>déjà là ?</h1><p class="lead">Vous avez une activité, des idées et une histoire. Ce quiz vous aide à repérer ce qui les relie, sans vous demander d’avoir la bonne réponse tout de suite.</p><button class="btn" id="start">Observons ensemble →</button><p class="micro">8 questions · environ 3 minutes · aucun jugement</p></div><div class="art"><div class="ring r1"></div><div class="ring r2"></div><div class="sun"></div><div class="needle"></div><div class="caption"><b>POINT DE DÉPART</b><span>commencer par soi</span></div></div></section>';
-  document.getElementById('start').onclick=()=>{emailGate()};
+  document.getElementById('start').onclick=()=>{quiz()};
 }
 
 let gateRenderedAt = null;
@@ -173,8 +173,8 @@ let gateRenderedAt = null;
 function emailGate(){
   app.className='shell quiz';
   gateRenderedAt = Date.now();
-  content.innerHTML=`<div class="progress"><i style="width:4%"></i></div><section class="layout"><aside class="aside"><div class="circle">✉</div><div><h2>Votre résultat, par email</h2><p>Votre profil et un premier pas concret arrivent directement dans votre boîte mail.</p></div><small>Avant de commencer</small></aside><div class="question"><p class="eyebrow">Une dernière chose</p><h1>Où faut-il vous envoyer votre clarté ?</h1><p class="hint">Aucun spam. Vous pouvez vous désinscrire en un clic à tout moment.</p><form id="gate-form" novalidate><div class="field"><label for="fn">Prénom</label><input id="fn" name="fn" type="text" autocomplete="given-name" placeholder="Votre prénom"></div><div class="field"><label for="em">Email</label><input id="em" name="em" type="email" autocomplete="email" required placeholder="vous@exemple.com"></div><label class="consent"><input type="checkbox" id="consent" required><span>J’accepte de recevoir mon résultat et des messages d’Absolu Clarté par email. Désinscription possible à tout moment. <a href="${PRIVACY_URL}" target="_blank" rel="noopener">Politique de confidentialité</a>.</span></label><p class="errormsg" id="gate-error"></p><div class="actions"><button type="button" class="back" id="gate-back">← Retour</button><button class="btn" type="submit" id="gate-submit">Observons ensemble →</button></div></form></div></section>`;
-  document.getElementById('gate-back').onclick=()=>landing();
+  content.innerHTML=`<div class="progress"><i style="width:97%"></i></div><section class="layout"><aside class="aside"><div class="circle">✉</div><div><h2>Votre résultat, par email</h2><p>Votre profil et un premier pas concret arrivent directement dans votre boîte mail.</p></div><small>Juste avant votre résultat</small></aside><div class="question"><p class="eyebrow">Une dernière chose</p><h1>Où faut-il vous envoyer votre clarté ?</h1><p class="hint">Aucun spam. Vous pouvez vous désinscrire en un clic à tout moment.</p><form id="gate-form" novalidate><div class="field"><label for="fn">Prénom</label><input id="fn" name="fn" type="text" autocomplete="given-name" placeholder="Votre prénom"></div><div class="field"><label for="em">Email</label><input id="em" name="em" type="email" autocomplete="email" required placeholder="vous@exemple.com"></div><label class="consent"><input type="checkbox" id="consent" required><span>J’accepte de recevoir mon résultat et des messages d’Absolu Clarté par email. Désinscription possible à tout moment. <a href="${PRIVACY_URL}" target="_blank" rel="noopener">Politique de confidentialité</a>.</span></label><p class="errormsg" id="gate-error"></p><div class="actions"><button type="button" class="back" id="gate-back">← Retour</button><button class="btn" type="submit" id="gate-submit">Voir mon résultat →</button></div></form></div></section>`;
+  document.getElementById('gate-back').onclick=()=>{state.index=questions.length-1;quiz();};
   document.getElementById('gate-form').onsubmit=async (e)=>{
     e.preventDefault();
     const email=document.getElementById('em').value.trim();
@@ -194,7 +194,7 @@ function emailGate(){
       await postToBrevo({ [BREVO_CONFIG.emailField]: email, [BREVO_CONFIG.firstNameField]: fn });
     }
     state.started=true;
-    quiz();
+    result();
   };
 }
 
@@ -209,16 +209,16 @@ function quiz(){
     state.answers[state.index]=Number(btn.dataset.i);
     quiz();
     advanceTimer=setTimeout(()=>{
-      if(state.index===questions.length-1) result(); else { state.index++; quiz(); }
+      if(state.index===questions.length-1) emailGate(); else { state.index++; quiz(); }
     }, 450);
   });
   document.getElementById('back').onclick=()=>{
     if(advanceTimer) clearTimeout(advanceTimer);
-    if(state.index===0){emailGate()}else{state.index--;quiz()}
+    if(state.index===0){landing()}else{state.index--;quiz()}
   };
   document.getElementById('next').onclick=()=>{
     if(advanceTimer) clearTimeout(advanceTimer);
-    if(state.index===questions.length-1) result();else{state.index++;quiz()}
+    if(state.index===questions.length-1) emailGate();else{state.index++;quiz()}
   };
 }
 
